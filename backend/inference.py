@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 import io
 import base64
@@ -70,8 +70,14 @@ class XRayAnalyzer:
             target_layer.register_backward_hook(save_gradients)
 
     def preprocess_image(self, image_bytes, target_size=224):
-        # Load image and convert to grayscale
-        image = Image.open(io.BytesIO(image_bytes)).convert("L")
+        # Load image
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        # Handle EXIF Rotation (Critical for Mobile Uploads)
+        image = ImageOps.exif_transpose(image)
+        
+        # Convert to Grayscale
+        image = image.convert("L")
         img_np = np.array(image)
         
         # Normalize
