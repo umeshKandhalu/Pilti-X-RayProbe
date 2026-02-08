@@ -13,3 +13,5 @@ python-dateutil
 boto3
 python-dotenv
 passlib[bcrypt]
+torchxrayvision
+scikit-image
