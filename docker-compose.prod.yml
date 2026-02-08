@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    # Pulls the pre-built image from GitHub Container Registry
+    image: ghcr.io/umeshkandhalu/pilti-backend:latest
+    container_name: pilti-backend
+    restart: always
+    ports:
+      - "8888:8080"
+    environment:
+      # In production, point to your actual MinIO/S3 server
+      - MINIO_ENDPOINT=http://145.241.237.108:9000
+      - MINIO_ACCESS_KEY=vPlP3zd1pXWl3c6deROP
+      - MINIO_SECRET_KEY=pC2H7MYAAH3DZs1faBKh9EzNHhDZ18UTTo8gjj7s
+      - MINIO_BUCKET_NAME=pcss-data
+      - MINIO_SECURE=False
+    volumes:
+      - ./uploads:/app/uploads
+      - ./reports:/app/reports
+
+  frontend:
+    # Pulls the pre-built image from GitHub Container Registry
+    image: ghcr.io/umeshkandhalu/pilti-frontend:latest
+    container_name: pilti-frontend
+    restart: always
+    ports:
+      - "80:80" # Standard web port
+    depends_on:
+      - backend
