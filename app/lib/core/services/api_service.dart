@@ -7,18 +7,23 @@ import 'package:http_parser/http_parser.dart'; // Add this import for MediaType
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../shared/models/analysis_result.dart';
 import 'file_downloader.dart'; // Correct import placement
+import 'package:crypto/crypto.dart';
+import 'dart:convert'; // for utf8
 
 class ApiService {
   static const String _keyUserEmail = 'user_email';
   static const String _keyLoginTimestamp = 'login_timestamp';
   static const String _keyBaseUrl = 'api_base_url';
+  static const String _keyJwtToken = 'jwt_token'; // Store JWT in SharedPreferences instead
   
   // Default URL (Localhost for emulator/device)
   static String _baseUrl = kIsWeb 
       ? '${Uri.base.scheme}://${Uri.base.host}:8888' 
       : (Platform.isMacOS || Platform.isWindows || Platform.isLinux)
           ? 'http://localhost:8888'
-          : 'http://192.168.0.91:8888';
+          : (Platform.isAndroid)
+              ? 'http://10.0.2.2:8888' 
+              : 'http://192.168.0.91:8888';
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: _baseUrl,
@@ -26,8 +31,63 @@ class ApiService {
     receiveTimeout: const Duration(seconds: 15),
   ));
 
+  // TODO: Move this to a secure config or env variable in production
+  static const String _hmacSecret = "your-secret-key-change-in-production"; 
+
   ApiService() {
     _initBaseUrl();
+    _setupInterceptors();
+  }
+
+  void _setupInterceptors() {
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // 1. Add JWT Token
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString(_keyJwtToken);
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+
+        // 2. Add HMAC Signature
+        final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+        options.headers['X-Timestamp'] = timestamp.toString();
+
+        List<int> bodyBytes = [];
+        if (options.data != null) {
+           if (options.data is FormData) {
+             // Skip signing FormData body for now as it's complex and usually large
+             // Ideally we should sign it, but let's stick to JSON/Map bodies or headers
+             // For this MVP, we will only sign the timestamp if body is FormData to verify request source
+             // OR: We can just sign an empty body for FormData
+             // Let's sign the payload if it's a Map/String
+           } else if (options.data is Map || options.data is List) {
+             bodyBytes = utf8.encode(jsonEncode(options.data));
+           } else if (options.data is String) {
+             bodyBytes = utf8.encode(options.data);
+           }
+        }
+        
+        // Signature = HMAC-SHA256(Secret, Timestamp + Body)
+        final hmac = Hmac(sha256, utf8.encode(_hmacSecret));
+        final message = utf8.encode('$timestamp') + bodyBytes;
+        final digest = hmac.convert(message);
+        
+        // Convert to hex string (backend expects hexdigest format, not Digest object toString)
+        options.headers['X-Signature'] = digest.toString().replaceAll(RegExp(r'[^0-9a-f]'), '');
+
+        return handler.next(options);
+      },
+      onError: (DioException e, handler) async {
+        if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+          // Token expired or Invalid Signature
+          await clearSession();
+          // TODO: Trigger navigation to login? 
+          // For now, allow the error to propagate so UI shows "Session Expired"
+        }
+        return handler.next(e);
+      }
+    ));
   }
 
   Future<void> _initBaseUrl() async {
@@ -108,7 +168,8 @@ class ApiService {
     required Map<String, dynamic> findings,
     required String originalImageBase64,
     required String heatmapImageBase64,
-    String modelInfo = "Standard Model",
+    required List<String> doctorMarkedImages,
+    String? modelInfo,
     bool shouldDownload = true,
   }) async {
     try {
@@ -122,6 +183,7 @@ class ApiService {
           'findings': findings,
           'original_image': originalImageBase64,
           'heatmap_image': heatmapImageBase64,
+          'doctor_marked_images': doctorMarkedImages,
           'model_info': modelInfo,
         },
         options: Options(responseType: ResponseType.bytes),
@@ -187,6 +249,13 @@ class ApiService {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_keyUserEmail, email);
         await prefs.setInt(_keyLoginTimestamp, DateTime.now().millisecondsSinceEpoch);
+        
+        // Save JWT in SharedPreferences (web-compatible)
+        final token = response.data['access_token'];
+        if (token != null) {
+          await prefs.setString(_keyJwtToken, token);
+        }
+        
         return true;
       }
       return false;
@@ -202,6 +271,7 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyUserEmail);
     await prefs.remove(_keyLoginTimestamp);
+    await prefs.remove(_keyJwtToken);
   }
 
   Future<String?> getSavedSession() async {

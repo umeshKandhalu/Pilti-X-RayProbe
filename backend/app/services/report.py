@@ -6,7 +6,7 @@ import datetime
 import textwrap
 
 class ReportGenerator:
-    def create_report(self, patient_id, patient_name, dob, email, findings, original_image_bytes, heatmap_image_bytes=None, model_info="Standard Model"):
+    def create_report(self, patient_id, patient_name, dob, email, findings, original_image_bytes, heatmap_image_bytes=None, doctor_marked_images_bytes=None, model_info="Standard Model"):
         from reportlab.lib import colors
         
         buffer = io.BytesIO()
@@ -196,32 +196,67 @@ class ReportGenerator:
             except Exception as e:
                 print(f"Error embedding heatmap image: {e}")
 
-        draw_footer(c, 1)
+        current_page = 1
+        draw_footer(c, current_page)
         c.showPage()
         
         # --- PAGE 2: Full Original X-Ray ---
+        current_page += 1
         draw_header(c, "Original X-Ray Scan")
         if original_image_bytes:
             try:
                 img = ImageReader(io.BytesIO(original_image_bytes))
-                c.drawImage(img, 40, 80, width=width-80, height=height-200, preserveAspectRatio=True)
+                c.drawImage(img, 40, 100, width=width-80, height=height-230, preserveAspectRatio=True)
+                # Add caption
+                c.setFont("Helvetica-Bold", 11)
+                c.setFillColor(colors.HexColor("#2E3B4E"))
+                caption_text = "Figure 1: Original X-Ray Scan - Unprocessed radiographic image"
+                text_width = c.stringWidth(caption_text, "Helvetica-Bold", 11)
+                c.drawString((width - text_width) / 2, 85, caption_text)
             except:
                 pass
-        draw_footer(c, 2)
+        draw_footer(c, current_page)
         c.showPage()
 
         # --- PAGE 3: Full Heatmap X-Ray ---
+        current_page += 1
         draw_header(c, "AI Analysis Overlay")
         if heatmap_image_bytes:
             try:
                 img_heat = ImageReader(io.BytesIO(heatmap_image_bytes))
-                c.drawImage(img_heat, 40, 80, width=width-80, height=height-200, preserveAspectRatio=True)
+                c.drawImage(img_heat, 40, 100, width=width-80, height=height-230, preserveAspectRatio=True)
+                # Add caption
+                c.setFont("Helvetica-Bold", 11)
+                c.setFillColor(colors.HexColor("#2E3B4E"))
+                caption_text = "Figure 2: AI Analysis Heatmap - Regions of interest highlighted by the AI model"
+                text_width = c.stringWidth(caption_text, "Helvetica-Bold", 11)
+                c.drawString((width - text_width) / 2, 85, caption_text)
             except:
                 pass
-        draw_footer(c, 3)
+        draw_footer(c, current_page)
         c.showPage()
+
+        # --- PAGE 4+: Doctor's Clinical Annotations ---
+        if doctor_marked_images_bytes:
+            for i, img_bytes in enumerate(doctor_marked_images_bytes):
+                current_page += 1
+                draw_header(c, f"Doctor's Clinical Annotation {i+1}")
+                try:
+                    img_marked = ImageReader(io.BytesIO(img_bytes))
+                    c.drawImage(img_marked, 40, 100, width=width-80, height=height-230, preserveAspectRatio=True)
+                    # Add caption
+                    c.setFont("Helvetica-Bold", 11)
+                    c.setFillColor(colors.HexColor("#2E3B4E"))
+                    caption_text = f"Figure {3+i}: Clinical Annotation {i+1} - Annotated by the reviewing physician"
+                    text_width = c.stringWidth(caption_text, "Helvetica-Bold", 11)
+                    c.drawString((width - text_width) / 2, 85, caption_text)
+                except Exception as e:
+                    print(f"Error embedding marked image {i}: {e}")
+                draw_footer(c, current_page)
+                c.showPage()
             
-        # --- PAGE 4: Technical Analysis for Doctors ---
+        # --- TECHNICAL APPENDIX ---
+        current_page += 1
         draw_header(c, "Technical Appendix")
         
         # Patient Info
@@ -283,6 +318,14 @@ class ReportGenerator:
             c.drawString(450, y+5, risk_label)
             y -= 20
             
+            # Check if we need a new page for Appendix table if it's too long
+            if y < 100:
+                draw_footer(c, current_page)
+                c.showPage()
+                current_page += 1
+                draw_header(c, "Technical Appendix (Continued)")
+                y = height - 120
+                
         y -= 30
         c.setFillColor(primary_color)
         c.setFont("Helvetica-Bold", 14)
@@ -307,15 +350,15 @@ class ReportGenerator:
             c.drawString(200, y, value)
             y -= 15
         
-        draw_footer(c, 4)
+        draw_footer(c, current_page)
         c.showPage()
         
-        # --- PAGE 5+: Detailed Pathology Appendix ---
-        current_page = 5
+        # --- Pathological Appendix ---
         pathology_list = sorted(explanations.keys())
         items_per_page = 6
         
         for i in range(0, len(pathology_list), items_per_page):
+            current_page += 1
             draw_header(c, f"Technical Appendix - Clinical Categories (Part {i//items_per_page + 1})")
             
             y = height - 120
@@ -359,7 +402,6 @@ class ReportGenerator:
                 
             draw_footer(c, current_page)
             c.showPage()
-            current_page += 1
             
         c.save()
         buffer.seek(0)

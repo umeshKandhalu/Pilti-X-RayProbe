@@ -14,4 +14,5 @@ class ReportRequest(BaseModel):
     original_image: str # Base64 encoded
     findings: dict
     heatmap_image: Optional[str] = None # Base64 encoded
+    doctor_marked_images: Optional[List[str]] = [] # List of Base64 encoded images
     model_info: Optional[str] = "Standard Model"

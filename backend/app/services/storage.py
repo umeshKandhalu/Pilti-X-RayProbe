@@ -1,6 +1,9 @@
 import boto3
 from botocore.exceptions import ClientError
 from app.core.config import settings
+import os
+import shutil
+from datetime import datetime
 
 class MinioStorage:
     def __init__(self):
@@ -9,6 +12,7 @@ class MinioStorage:
         self.secret_key = settings.MINIO_SECRET_KEY
         self.bucket_name = settings.MINIO_BUCKET_NAME
         self.secure = settings.MINIO_SECURE
+        self.local_storage_path = "pcss-data" # Local fallback directory
 
         try:
             self.s3_client = boto3.client(
@@ -21,7 +25,10 @@ class MinioStorage:
             self._ensure_bucket_exists()
         except Exception as e:
             print(f"Failed to initialize MinIO client: {e}")
+            print(f"Falling back to local storage at {self.local_storage_path}")
             self.s3_client = None
+            if not os.path.exists(self.local_storage_path):
+                os.makedirs(self.local_storage_path)
 
     def _ensure_bucket_exists(self):
         if not self.s3_client: return
@@ -35,10 +42,31 @@ class MinioStorage:
                 print(f"Error creating bucket: {e}")
 
     def upload_file(self, file_data, object_name, content_type):
-        """Uploads a file-like object or bytes to MinIO."""
+        """Uploads a file-like object or bytes to MinIO or Local Storage."""
         if not self.s3_client:
-            print("MinIO client not initialized. Skipping upload.")
-            return False
+            # Local Fallback
+            try:
+                full_path = os.path.join(self.local_storage_path, object_name)
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                
+                # Check if file_data is bytes or file-like
+                if hasattr(file_data, 'read'):
+                     content = file_data.read()
+                else:
+                     content = file_data
+                
+                if isinstance(content, str):
+                    mode = 'w'
+                else:
+                    mode = 'wb'
+                    
+                with open(full_path, mode) as f:
+                    f.write(content)
+                print(f"Saved locally: {full_path}")
+                return True
+            except Exception as e:
+                print(f"Local save failed: {e}")
+                return False
 
         try:
             self.s3_client.put_object(
@@ -55,7 +83,19 @@ class MinioStorage:
 
     def list_files(self, prefix):
         """Lists files with the given prefix."""
-        if not self.s3_client: return []
+        if not self.s3_client:
+            # Local Fallback
+            results = []
+            for root, dirs, files in os.walk(self.local_storage_path):
+                for file in files:
+                    rel_path = os.path.relpath(os.path.join(root, file), self.local_storage_path)
+                    if rel_path.startswith(prefix):
+                        results.append({
+                            'Key': rel_path,
+                            'LastModified': datetime.fromtimestamp(os.path.getmtime(os.path.join(root, file)))
+                        })
+            return results
+
         try:
             response = self.s3_client.list_objects_v2(
                 Bucket=self.bucket_name,
@@ -67,8 +107,18 @@ class MinioStorage:
             return []
 
     def get_file(self, object_name):
-        """Retrieves a file object from MinIO."""
-        if not self.s3_client: return None
+        """Retrieves a file object from MinIO or Local Storage."""
+        if not self.s3_client:
+             # Local Fallback
+            try:
+                full_path = os.path.join(self.local_storage_path, object_name)
+                if os.path.exists(full_path):
+                    with open(full_path, 'rb') as f:
+                        return f.read()
+            except Exception as e:
+                print(f"Local read failed: {e}")
+            return None
+
         try:
             response = self.s3_client.get_object(Bucket=self.bucket_name, Key=object_name)
             return response['Body'].read()

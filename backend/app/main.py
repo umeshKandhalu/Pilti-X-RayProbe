@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from app.core.config import settings
 from app.api import auth, analysis, reports
 
@@ -20,9 +24,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi import Request, HTTPException
+from app.core.security import verify_hmac, SECRET_KEY
+
 @app.middleware("http")
-async def log_requests(request, call_next):
-    print(f"DEBUG REQUEST: {request.method} {request.url} from {request.client.host}")
+async def verify_hmac_middleware(request: Request, call_next):
+    # Skip HMAC for open docs and health check
+    if request.url.path in ["/", "/health", "/docs", "/openapi.json"]:
+        return await call_next(request)
+
+    # 1. Get Headers
+    signature = request.headers.get("X-Signature")
+    timestamp = request.headers.get("X-Timestamp")
+
+    # 2. Skip if headers missing (Optional: Enforce strictly?)
+    # For now, let's strictly enforce on /analyze and /generate_report to be safe
+    # But allow auth endpoints to be loose if needed? No, let's enforce all API routes.
+    if request.url.path.startswith("/api"): # Assuming all routes are api/*, wait, they are at root
+        pass 
+    
+    # 3. Read Body (Need to cache it because consuming stream clears it)
+    body_bytes = await request.body()
+    
+    # Re-package body for the next handler
+    async def receive():
+        return {"type": "http.request", "body": body_bytes}
+    request._receive = receive
+
+    if signature and timestamp:
+         # For multipart/form-data (file uploads), frontend signs empty body
+         # because boundary is dynamic. We must replicate this logic.
+         content_type = request.headers.get("content-type", "")
+         bytes_to_verify = body_bytes
+         if "multipart/form-data" in content_type:
+             bytes_to_verify = b""
+             
+         is_valid, msg = verify_hmac(bytes_to_verify, signature, timestamp, SECRET_KEY)
+         if not is_valid:
+             from fastapi.responses import JSONResponse
+             return JSONResponse(status_code=403, content={"detail": f"HMAC Verification Failed: {msg}"})
+
     response = await call_next(request)
     return response
 

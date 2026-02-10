@@ -1,11 +1,12 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from app.api.deps import get_analyzer
+from app.api.deps import get_analyzer, get_current_user
 
 router = APIRouter()
 
 @router.post("/analyze")
-async def analyze_xray(file: UploadFile = File(...)):
+async def analyze_xray(file: UploadFile = File(...), current_user: str = Depends(get_current_user)):
+# I need to import get_current_user
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     

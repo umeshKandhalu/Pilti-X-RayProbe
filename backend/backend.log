@@ -1,0 +1,195 @@
+INFO:     Will watch for changes in these directories: ['/Users/umesh/Pilti-xrayProbe/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8888 (Press CTRL+C to quit)
+INFO:     Started reloader process [24463] using StatReload
+/Users/umesh/Pilti-xrayProbe/backend/venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+INFO:     Started server process [24506]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Loading Clinical Ensemble Models on cpu...
+Loading Model 1: DenseNet121 (High Resolution)...
+Loading Model 2: ResNet50 (Extra Detail)...
+Loading OOD Detector: ResNetAE-101...
+INFO:     127.0.0.1:50900 - "OPTIONS /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50900 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50983 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50985 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51018 - "OPTIONS /generate_report HTTP/1.1" 200 OK
+Uploaded test@example.com/PCSS-20260210-1233/Original_PCSS-20260210-1233_Naming_Fix_Test.jpg to pcss-data
+Uploaded test@example.com/PCSS-20260210-1233/Analyzed_PCSS-20260210-1233_Naming_Fix_Test.jpg to pcss-data
+Uploaded test@example.com/PCSS-20260210-1233/Report_PCSS-20260210-1233_Naming_Fix_Test.pdf to pcss-data
+INFO:     127.0.0.1:51018 - "POST /generate_report HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app/models/schemas.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [24506]
+/Users/umesh/Pilti-xrayProbe/backend/venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+INFO:     Started server process [26842]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'app/api/reports.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26842]
+/Users/umesh/Pilti-xrayProbe/backend/venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+INFO:     Started server process [26909]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'app/services/report.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26909]
+/Users/umesh/Pilti-xrayProbe/backend/venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+INFO:     Started server process [26927]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'app/services/report.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26927]
+/Users/umesh/Pilti-xrayProbe/backend/venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+INFO:     Started server process [26952]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Loading Clinical Ensemble Models on cpu...
+Loading Model 1: DenseNet121 (High Resolution)...
+Loading Model 2: ResNet50 (Extra Detail)...
+Loading OOD Detector: ResNetAE-101...
+INFO:     127.0.0.1:51388 - "OPTIONS /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51388 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51433 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51433 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51551 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52139 - "OPTIONS /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52139 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52140 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52182 - "GET /docs HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52182 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52184 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52199 - "GET /openapi.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52224 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52224 - "GET /api/auth/login HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52248 - "GET /api/openapi.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52248 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52301 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52348 - "GET /docs HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52352 - "GET /api/v1/docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52352 - "GET /api/v1/openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52364 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52414 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52414 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52406 - "GET /api/v1/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52424 - "POST /login HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:52430 - "POST /login HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:52491 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52491 - "POST /analyze HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52491 - "POST /analyze HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52512 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52545 - "POST /analyze HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52550 - "OPTIONS /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52550 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52662 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52678 - "OPTIONS /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52678 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52739 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53743 - "OPTIONS /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53743 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53744 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53744 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53763 - "OPTIONS /generate_report HTTP/1.1" 200 OK
+Uploaded umesh@piltismart.com/PCSS-20260210-1110/Original_PCSS-20260210-1110_gdfgfg.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1110/Analyzed_PCSS-20260210-1110_gdfgfg.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1110/DoctorMarked_0_PCSS-20260210-1110_gdfgfg.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1110/Report_PCSS-20260210-1110_gdfgfg.pdf to pcss-data
+INFO:     127.0.0.1:53763 - "POST /generate_report HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53811 - "POST /analyze HTTP/1.1" 200 OK
+Uploaded umesh@piltismart.com/PCSS-20260210-1909/Original_PCSS-20260210-1909_erewrewr.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1909/Analyzed_PCSS-20260210-1909_erewrewr.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1909/DoctorMarked_0_PCSS-20260210-1909_erewrewr.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1909/Report_PCSS-20260210-1909_erewrewr.pdf to pcss-data
+INFO:     127.0.0.1:53813 - "POST /generate_report HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53883 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53883 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "OPTIONS /generate_report HTTP/1.1" 200 OK
+Uploaded umesh@piltismart.com/PCSS-20260210-1843/Original_PCSS-20260210-1843_hhhhh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1843/Analyzed_PCSS-20260210-1843_hhhhh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1843/DoctorMarked_0_PCSS-20260210-1843_hhhhh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1843/Report_PCSS-20260210-1843_hhhhh.pdf to pcss-data
+INFO:     127.0.0.1:53893 - "POST /generate_report HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53954 - "POST /generate_report HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:53955 - "POST /generate_report HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:53957 - "POST /generate_report HTTP/1.1" 401 Unauthorized
+WARNING:  StatReload detected changes in 'app/core/security.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26952]
+/Users/umesh/Pilti-xrayProbe/backend/venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+INFO:     Started server process [37553]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Loading Clinical Ensemble Models on cpu...
+Loading Model 1: DenseNet121 (High Resolution)...
+Loading Model 2: ResNet50 (Extra Detail)...
+Loading OOD Detector: ResNetAE-101...
+INFO:     127.0.0.1:53998 - "OPTIONS /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53998 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53999 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53999 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54011 - "OPTIONS /generate_report HTTP/1.1" 200 OK
+Uploaded umesh@piltismart.com/PCSS-20260210-1532/Original_PCSS-20260210-1532_umesh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1532/Analyzed_PCSS-20260210-1532_umesh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1532/DoctorMarked_0_PCSS-20260210-1532_umesh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1532/DoctorMarked_1_PCSS-20260210-1532_umesh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1532/Report_PCSS-20260210-1532_umesh.pdf to pcss-data
+INFO:     127.0.0.1:54012 - "POST /generate_report HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54210 - "OPTIONS /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54210 - "POST /analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54222 - "OPTIONS /generate_report HTTP/1.1" 200 OK
+Uploaded umesh@piltismart.com/PCSS-20260210-1336/Original_PCSS-20260210-1336_uggjhjh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1336/Analyzed_PCSS-20260210-1336_uggjhjh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1336/DoctorMarked_0_PCSS-20260210-1336_uggjhjh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1336/DoctorMarked_1_PCSS-20260210-1336_uggjhjh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1336/DoctorMarked_2_PCSS-20260210-1336_uggjhjh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1336/DoctorMarked_3_PCSS-20260210-1336_uggjhjh.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1336/Report_PCSS-20260210-1336_uggjhjh.pdf to pcss-data
+INFO:     127.0.0.1:54222 - "POST /generate_report HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app/services/report.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37553]
+/Users/umesh/Pilti-xrayProbe/backend/venv/lib/python3.9/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+INFO:     Started server process [38542]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Loading Clinical Ensemble Models on cpu...
+Loading Model 1: DenseNet121 (High Resolution)...
+Loading Model 2: ResNet50 (Extra Detail)...
+Loading OOD Detector: ResNetAE-101...
+INFO:     127.0.0.1:54259 - "OPTIONS /reports/umesh%40piltismart.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54259 - "GET /reports/umesh%40piltismart.com HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54260 - "OPTIONS /reports/umesh%40piltismart.com/PCSS-20260210-1336/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54260 - "GET /reports/umesh%40piltismart.com/PCSS-20260210-1336/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54634 - "POST /analyze HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:54634 - "POST /analyze HTTP/1.1" 401 Unauthorized
+Error getting file umesh@gmail.com/account.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+INFO:     127.0.0.1:54638 - "POST /login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:54640 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54642 - "POST /analyze HTTP/1.1" 200 OK
+Uploaded umesh@piltismart.com/PCSS-20260210-1280/Original_PCSS-20260210-1280_rtetrtert.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1280/Analyzed_PCSS-20260210-1280_rtetrtert.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1280/DoctorMarked_0_PCSS-20260210-1280_rtetrtert.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1280/DoctorMarked_1_PCSS-20260210-1280_rtetrtert.jpg to pcss-data
+Uploaded umesh@piltismart.com/PCSS-20260210-1280/Report_PCSS-20260210-1280_rtetrtert.pdf to pcss-data
+INFO:     127.0.0.1:54648 - "POST /generate_report HTTP/1.1" 200 OK

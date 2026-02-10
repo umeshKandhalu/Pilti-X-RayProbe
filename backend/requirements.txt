@@ -15,3 +15,4 @@ python-dotenv
 passlib[bcrypt]
 torchxrayvision
 scikit-image
+python-jose[cryptography]
