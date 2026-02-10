@@ -60,3 +60,14 @@ backend/uploads/
 backend/reports/
 *.db
 *.sqlite3
+cmdline-tools.zip
+openjdk.tar.gz
+tools/
+install_xcode.sh
+install_xcode.command
+install_cocoapods.command
+app/android/vendor/
+app/android/.bundle/
+backend/venv/
+backend/_legacy/
+app/build_log.txt

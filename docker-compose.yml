@@ -9,7 +9,10 @@ services:
     ports:
       - "8888:8080" # Map host 8888 to container 8080
     environment:
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://host.docker.internal:9000} # Use host networking for local MinIO if needed
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://host.docker.internal:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
     volumes:
       - ./backend/uploads:/app/uploads
       - ./backend/reports:/app/reports

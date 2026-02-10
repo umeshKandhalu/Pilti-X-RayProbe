@@ -1,0 +1,101 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        pip install httpx pytest
+        
+    - name: Run Backend Tests
+      run: |
+        # Ensure we can import from app
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/backend
+        # Run tests if they exist
+        if [ -d "backend/tests" ]; then
+          pytest backend/tests
+        else
+          echo "No tests directory found, skipping pytest."
+        fi
+
+  frontend-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app
+    steps:
+    - uses: actions/checkout@v3
+    
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+        
+    - run: flutter pub get
+    - run: flutter analyze
+    # - run: flutter test # Uncomment when unit tests are added
+
+  android-build:
+    needs: frontend-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app
+    steps:
+    - uses: actions/checkout@v3
+    
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+        
+    - run: flutter pub get
+    
+    - name: Build Android APK (Debug)
+      run: flutter build apk --debug
+      
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-debug-apk
+        path: app/build/app/outputs/flutter-apk/app-debug.apk
+
+  ios-build:
+    needs: frontend-check
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./app
+    steps:
+    - uses: actions/checkout@v3
+    
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+        
+    - run: flutter pub get
+    
+    - name: Build iOS (No Codesign)
+      run: flutter build ios --release --no-codesign

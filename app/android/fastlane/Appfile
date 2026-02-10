@@ -1,0 +1,2 @@
+json_key_file("fastlane/service-account-key.json") # Path to the json secret file
+package_name("com.pcss.clinical_decision_support")
