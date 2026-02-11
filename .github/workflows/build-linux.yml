@@ -57,6 +57,8 @@ jobs:
           EOF
           chmod +x AppDir/AppRun
           
+          # Run appimagetool without FUSE
+          export APPIMAGE_EXTRACT_AND_RUN=1
           ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir PCSS-XRay-Analysis-x86_64.AppImage
           
       - name: Upload Artifact
