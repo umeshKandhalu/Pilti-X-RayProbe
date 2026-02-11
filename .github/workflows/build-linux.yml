@@ -57,20 +57,56 @@ jobs:
           EOF
           chmod +x AppDir/AppRun
           
-          # Run appimagetool without FUSE
-          export APPIMAGE_EXTRACT_AND_RUN=1
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir PCSS-XRay-Analysis-x86_64.AppImage
+          # Create .deb package
+          mkdir -p deb_package/usr/local/bin
+          mkdir -p deb_package/usr/local/lib/pcss-xray-analysis
+          mkdir -p deb_package/usr/share/applications
+          mkdir -p deb_package/usr/share/icons/hicolor/256x256/apps
+          mkdir -p deb_package/DEBIAN
           
+          # Copy files
+          cp -r app/build/linux/x64/release/bundle/* deb_package/usr/local/lib/pcss-xray-analysis/
+          ln -s /usr/local/lib/pcss-xray-analysis/clinical_decision_support deb_package/usr/local/bin/pcss-xray-analysis
+          
+          # Create control file
+          cat > deb_package/DEBIAN/control <<EOF
+          Package: pcss-xray-analysis
+          Version: 1.0.1
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Pilti Smart <info@pilti.com>
+          Description: PCSS X-Ray Analysis
+           Clinical Decision Support System for X-Ray Analysis
+          EOF
+          
+          # Create desktop entry
+          cat > deb_package/usr/share/applications/pcss.desktop <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=PCSS X-Ray Analysis
+          Exec=/usr/local/bin/pcss-xray-analysis
+          Icon=pcss
+          Categories=Medical;
+          EOF
+          
+          # Build .deb
+          dpkg-deb --build deb_package PCSS-XRay-Analysis_1.0.1_amd64.deb
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-appimage
-          path: PCSS-XRay-Analysis-x86_64.AppImage
+          name: linux-packages
+          path: |
+            PCSS-XRay-Analysis-x86_64.AppImage
+            PCSS-XRay-Analysis_1.0.1_amd64.deb
           
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: PCSS-XRay-Analysis-x86_64.AppImage
+          files: |
+            PCSS-XRay-Analysis-x86_64.AppImage
+            PCSS-XRay-Analysis_1.0.1_amd64.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
