@@ -8,6 +8,8 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       
@@ -48,3 +50,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: PCSS-XRay-Analysis.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
