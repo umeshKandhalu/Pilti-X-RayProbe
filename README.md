@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" width="200" alt="PCSS Logo">
+</p>
+
 # PCSS - Pilti Clinical Support System v2.0.0
 
 [![Release](https://img.shields.io/badge/Release-ECG_Added_V2.0.0-teal.svg)](https://github.com/umeshKandhalu/Pilti-X-RayProbe)
