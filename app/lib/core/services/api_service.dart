@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart'; // For XFile
@@ -12,23 +11,22 @@ import 'dart:convert'; // for utf8
 
 class ApiService {
   static const String _keyUserEmail = 'user_email';
+  static const String _keyUserRole = 'user_role';
   static const String _keyLoginTimestamp = 'login_timestamp';
   static const String _keyBaseUrl = 'api_base_url';
   static const String _keyJwtToken = 'jwt_token'; // Store JWT in SharedPreferences instead
   
   // Default URL (Localhost for emulator/device)
+  // Note: Platform.isX is not used directly to avoid dart:io errors on web
   static String _baseUrl = kIsWeb 
       ? '${Uri.base.scheme}://${Uri.base.host}:8888' 
-      : (Platform.isMacOS || Platform.isWindows || Platform.isLinux)
-          ? 'http://localhost:8888'
-          : (Platform.isAndroid)
-              ? 'http://10.0.2.2:8888' 
-              : 'http://192.168.0.91:8888';
+      : 'http://localhost:8888'; // Default for desktop/local
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: _baseUrl,
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
+    connectTimeout: const Duration(seconds: 300),
+    receiveTimeout: const Duration(seconds: 300),
+    sendTimeout: const Duration(seconds: 300),
   ));
 
   // TODO: Move this to a secure config or env variable in production
@@ -55,12 +53,9 @@ class ApiService {
 
         List<int> bodyBytes = [];
         if (options.data != null) {
-           if (options.data is FormData) {
-             // Skip signing FormData body for now as it's complex and usually large
-             // Ideally we should sign it, but let's stick to JSON/Map bodies or headers
-             // For this MVP, we will only sign the timestamp if body is FormData to verify request source
-             // OR: We can just sign an empty body for FormData
-             // Let's sign the payload if it's a Map/String
+           if (options.data is FormData || options.path == '/generate_report') {
+             // Skip signing FormData body and large report JSON to avoid UI freeze/mismatches
+             bodyBytes = [];
            } else if (options.data is Map || options.data is List) {
              bodyBytes = utf8.encode(jsonEncode(options.data));
            } else if (options.data is String) {
@@ -167,9 +162,11 @@ class ApiService {
     required String email,
     required Map<String, dynamic> findings,
     required String originalImageBase64,
-    required String heatmapImageBase64,
-    required List<String> doctorMarkedImages,
+    String? heatmapImageBase64,
+    String? waveformImageBase64,
+    List<String>? doctorMarkedImages,
     String? modelInfo,
+    bool isEcg = false,
     bool shouldDownload = true,
   }) async {
     try {
@@ -183,8 +180,10 @@ class ApiService {
           'findings': findings,
           'original_image': originalImageBase64,
           'heatmap_image': heatmapImageBase64,
-          'doctor_marked_images': doctorMarkedImages,
+          'waveform_image': waveformImageBase64,
+          'doctor_marked_images': doctorMarkedImages ?? [],
           'model_info': modelInfo,
+          'is_ecg': isEcg,
         },
         options: Options(responseType: ResponseType.bytes),
       );
@@ -216,6 +215,18 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> analyzeEcg(String base64Image) async {
+    try {
+      final response = await _dio.post('/ecg/analyze', data: {
+        'image': base64Image,
+      });
+      return response.data;
+    } catch (e) {
+      print('Error analyzing ECG: $e');
+      rethrow;
+    }
+  }
+
   String getReportPdfUrl(String email, String patientId) {
     return '${_dio.options.baseUrl}/reports/$email/$patientId/pdf';
   }
@@ -236,6 +247,45 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getUsageStats() async {
+    try {
+      final response = await _dio.get('/usage_stats');
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to load usage stats');
+      }
+    } catch (e) {
+      print('Error fetching usage stats: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> adminListUsers() async {
+    try {
+      final response = await _dio.get('/admin/users');
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(response.data['users']);
+      }
+      return [];
+    } catch (e) {
+      print('Error listing users: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> adminUpdateLimits(String email, {int? maxStorage, int? maxRuns}) async {
+    try {
+      await _dio.patch('/admin/users/$email/limits', data: {
+        if (maxStorage != null) 'max_storage_bytes': maxStorage,
+        if (maxRuns != null) 'max_runs_count': maxRuns,
+      });
+    } catch (e) {
+      print('Error updating limits: $e');
+      rethrow;
+    }
+  }
+
   Future<bool> login(String email, String password, {String? dob}) async {
     try {
       final response = await _dio.post('/login', data: {
@@ -248,6 +298,7 @@ class ApiService {
         // Save session locally for 24h persistence
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_keyUserEmail, email);
+        await prefs.setString(_keyUserRole, response.data['role'] ?? 'user');
         await prefs.setInt(_keyLoginTimestamp, DateTime.now().millisecondsSinceEpoch);
         
         // Save JWT in SharedPreferences (web-compatible)
@@ -270,8 +321,14 @@ class ApiService {
   Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyUserEmail);
+    await prefs.remove(_keyUserRole);
     await prefs.remove(_keyLoginTimestamp);
     await prefs.remove(_keyJwtToken);
+  }
+
+  Future<String> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyUserRole) ?? 'user';
   }
 
   Future<String?> getSavedSession() async {

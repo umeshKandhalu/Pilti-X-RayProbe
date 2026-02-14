@@ -22,8 +22,26 @@ async def login(request: LoginRequest, auth_service: AuthService = Depends(get_a
     # Create Access Token
     access_token = create_access_token(data={"sub": request.email})
     
+    # Fetch usage and role
+    usage = auth_service.get_usage(request.email)
+    
     return {
         "access_token": access_token, 
         "token_type": "bearer",
-        "email": request.email
+        "email": request.email,
+        "role": usage.get('role', 'user'),
+        "limits": {
+            "max_storage_bytes": usage.get('max_storage_bytes'),
+            "max_runs_count": usage.get('max_runs_count')
+        }
     }
+
+from app.api.deps import get_current_user
+
+@router.get("/usage_stats")
+async def get_stats(
+    current_user: str = Depends(get_current_user),
+    auth_service: AuthService = Depends(get_auth_service)
+):
+    """Returns storage and run usage for the logged-in user."""
+    return auth_service.get_usage(current_user)

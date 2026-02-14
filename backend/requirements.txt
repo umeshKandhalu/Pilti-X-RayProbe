@@ -16,3 +16,10 @@ passlib[bcrypt]
 torchxrayvision
 scikit-image
 python-jose[cryptography]
+transformers
+timm
+einops
+scikit-learn
+scipy
+neurokit2
+pandas

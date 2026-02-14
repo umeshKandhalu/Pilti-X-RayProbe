@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb; 
 import 'package:flutter/material.dart';
@@ -46,12 +45,55 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
   bool _findingsReviewed = false;
 
   final List<Uint8List> _markedImages = [];
+  Map<String, dynamic>? _usageStats;
+  bool _isLoadingUsage = true;
+  String? _quotaError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsageStats();
+  }
+
+  Future<void> _fetchUsageStats() async {
+    try {
+      final stats = await _apiService.getUsageStats();
+      if (mounted) {
+        setState(() {
+          _usageStats = stats;
+          _isLoadingUsage = false;
+          _checkStorageQuota();
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching stats: $e");
+      if (mounted) setState(() => _isLoadingUsage = false);
+    }
+  }
+
+  Future<void> _checkStorageQuota() async {
+    if (_usageStats == null) return;
+    
+    final int used = _usageStats!['storage_used_bytes'] ?? 0;
+    final int limit = 1 * 1024 * 1024 * 1024; // 1 GB
+    
+    // Estimate upload size: Image + Safety Margin (~5MB per scan max)
+    final int imageSize = await widget.imageFile.length();
+    final int estimatedTotal = used + imageSize + (50 * 1024); // +50KB for PDF/Metadata
+    
+    if (estimatedTotal > limit) {
+      setState(() {
+        _quotaError = "Storage Full (${(used / (1024 * 1024)).toStringAsFixed(1)} MB / 1 GB). Delete old reports to proceed.";
+      });
+    }
+  }
 
   bool get _canGenerate => 
       _verifiedPatientId && 
       _verifiedImageQuality && 
       _clinicalCorrelation && 
-      _findingsReviewed; // Report ID is now pre-verified
+      _findingsReviewed &&
+      _quotaError == null; // Added quota check
 
   Future<void> _generateAndDownloadReport() async {
     if (!_canGenerate) return;
@@ -373,15 +415,24 @@ class _ReportPreviewScreenState extends State<ReportPreviewScreen> {
             ),
             
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            if (_quotaError != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  _quotaError!,
+                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+            ElevatedButton(
               onPressed: _canGenerate ? _generateAndDownloadReport : null,
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text('CONFIRM & VIEW REPORT'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.indigo,
+                backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
               ),
+              child: const Text('GENERATE & DOWNLOAD REPORT'),
             ),
           ],
         ),

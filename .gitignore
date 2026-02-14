@@ -71,3 +71,7 @@ app/android/.bundle/
 backend/venv/
 backend/_legacy/
 app/build_log.txt
+*.log
+backend/*.log
+app/*.log
+.env

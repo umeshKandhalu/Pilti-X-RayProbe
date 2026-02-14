@@ -25,7 +25,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -35,9 +35,14 @@ def verify_token(token: str, credentials_exception):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
+            print(f"Token verification failed: 'sub' missing in payload for token {token[:10]}...")
             raise credentials_exception
         return email
-    except JWTError:
+    except jwt.ExpiredSignatureError:
+        print(f"Token verification failed: Token expired.")
+        raise credentials_exception
+    except JWTError as e:
+        print(f"Token verification failed: {e}")
         raise credentials_exception
 
 def verify_hmac(request_body: bytes, signature: str, timestamp: str, secret: str):

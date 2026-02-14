@@ -92,7 +92,8 @@ class MinioStorage:
                     if rel_path.startswith(prefix):
                         results.append({
                             'Key': rel_path,
-                            'LastModified': datetime.fromtimestamp(os.path.getmtime(os.path.join(root, file)))
+                            'LastModified': datetime.fromtimestamp(os.path.getmtime(os.path.join(root, file))),
+                            'Size': os.path.getsize(os.path.join(root, file))
                         })
             return results
 
@@ -125,3 +126,29 @@ class MinioStorage:
         except Exception as e:
             print(f"Error getting file {object_name}: {e}")
             return None
+    def get_directory_size(self, prefix):
+        """Calculates total size of objects with the given prefix in bytes."""
+        if not self.s3_client:
+            # Local Fallback
+            total_size = 0
+            try:
+                for root, _, files in os.walk(self.local_storage_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        rel_path = os.path.relpath(file_path, self.local_storage_path)
+                        if rel_path.startswith(prefix):
+                            total_size += os.path.getsize(file_path)
+            except Exception as e:
+                print(f"Error calculating local size: {e}")
+            return total_size
+
+        try:
+            total_size = 0
+            paginator = self.s3_client.get_paginator('list_objects_v2')
+            for page in paginator.paginate(Bucket=self.bucket_name, Prefix=prefix):
+                for obj in page.get('Contents', []):
+                    total_size += obj['Size']
+            return total_size
+        except Exception as e:
+            print(f"Error calculating directory size: {e}")
+            return 0

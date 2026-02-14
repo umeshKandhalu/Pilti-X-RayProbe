@@ -187,40 +187,69 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Account Email',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Please enter email' : null,
-                  ),
-                  const SizedBox(height: 16),
+                  AutofillGroup(
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _emailController,
+                          autofillHints: const [AutofillHints.email],
+                          decoration: const InputDecoration(
+                            labelText: 'Account Email',
+                            prefixIcon: Icon(Icons.email),
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                          validator: (value) =>
+                              value == null || value.isEmpty ? 'Please enter email' : null,
+                        ),
+                        const SizedBox(height: 16),
 
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock),
-                      border: OutlineInputBorder(),
+                        TextFormField(
+                          controller: _passwordController,
+                          autofillHints: _isRegistering ? const [AutofillHints.newPassword] : const [AutofillHints.password],
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Password',
+                            prefixIcon: Icon(Icons.lock),
+                            border: OutlineInputBorder(),
+                          ),
+                          textInputAction: _isRegistering ? TextInputAction.next : TextInputAction.done,
+                          onEditingComplete: () {
+                            if (!_isRegistering) {
+                               _submit();
+                            } else {
+                               FocusScope.of(context).nextFocus();
+                            }
+                          },
+                          onFieldSubmitted: (_) {
+                            if (_isRegistering) {
+                              FocusScope.of(context).nextFocus();
+                            } else {
+                              _submit();
+                            }
+                          },
+                          validator: (value) =>
+                              value == null || value.length < 6 ? 'Min 6 chars' : null,
+                        ),
+                      ],
                     ),
-                    validator: (value) =>
-                        value == null || value.length < 6 ? 'Min 6 chars' : null,
                   ),
                   const SizedBox(height: 16),
 
                   if (_isRegistering) ...[
                     TextFormField(
                       controller: _confirmPasswordController,
+                      autofillHints: const [AutofillHints.password],
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'Confirm Password',
                         prefixIcon: Icon(Icons.lock_outline),
                         border: OutlineInputBorder(),
                       ),
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _submit(),
                       validator: (value) {
                         if (value == null || value.isEmpty) return 'Please confirm password';
                         if (value != _passwordController.text) return 'Passwords do not match';

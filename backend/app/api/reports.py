@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Response, Depends
 from app.models.schemas import ReportRequest
 from app.services.report import ReportGenerator
 from app.services.storage import MinioStorage
-from app.api.deps import get_report_generator, get_storage, get_current_user
+from app.api.deps import get_report_generator, get_storage, get_current_user, get_auth_service, AuthService
 import base64
 import io
 
@@ -13,8 +13,14 @@ async def generate_report(
     request: ReportRequest,
     report_gen: ReportGenerator = Depends(get_report_generator),
     storage: MinioStorage = Depends(get_storage),
+    auth_service: AuthService = Depends(get_auth_service),
     current_user: str = Depends(get_current_user)
 ):
+    # 1. Check Usage Limits (Storage only here, runs already checked in /analyze)
+    allowed, message = auth_service.check_limits(current_user)
+    if not allowed:
+        raise HTTPException(status_code=403, detail=f"Quota Exceeded: {message}")
+
     if request.email != current_user:
         raise HTTPException(status_code=403, detail="Not authorized to generate report for another user")
     try:
@@ -29,6 +35,9 @@ async def generate_report(
 
         original_image_bytes = decode_image(request.original_image)
         heatmap_image_bytes = decode_image(request.heatmap_image)
+        pinpoint_image_bytes = decode_image(request.pinpoint_image)
+        
+        waveform_image_bytes = decode_image(request.waveform_image)
         
         # Collect marked images
         marked_images_bytes = []
@@ -37,7 +46,7 @@ async def generate_report(
                 img_bytes = decode_image(img_b64)
                 if img_bytes:
                     marked_images_bytes.append(img_bytes)
-        
+
         pdf_bytes = report_gen.create_report(
             patient_id=request.patient_id,
             patient_name=request.patient_name,
@@ -46,8 +55,11 @@ async def generate_report(
             findings=request.findings,
             original_image_bytes=original_image_bytes,
             heatmap_image_bytes=heatmap_image_bytes,
+            pinpoint_image_bytes=pinpoint_image_bytes,
             doctor_marked_images_bytes=marked_images_bytes,
-            model_info=request.model_info
+            model_info=request.model_info,
+            is_ecg=request.is_ecg,
+            waveform_image_bytes=waveform_image_bytes
         )
         
         # Upload to MinIO
@@ -66,13 +78,31 @@ async def generate_report(
                 "image/jpeg"
             )
             
-        # Upload Heatmap
+        # Upload Heatmap (X-ray specific)
         if heatmap_image_bytes:
             analyzed_filename = f"Analyzed_{request.patient_id}_{safe_name}.jpg"
             storage.upload_file(
                 io.BytesIO(heatmap_image_bytes),
                 f"{base_path}/{analyzed_filename}",
                 "image/jpeg"
+            )
+
+        # Upload Pinpoint
+        if pinpoint_image_bytes:
+            pinpoint_filename = f"Pinpoint_{request.patient_id}_{safe_name}.jpg"
+            storage.upload_file(
+                io.BytesIO(pinpoint_image_bytes),
+                f"{base_path}/{pinpoint_filename}",
+                "image/jpeg"
+            )
+
+        # Upload Waveform (ECG specific)
+        if waveform_image_bytes:
+            waveform_filename = f"Waveform_{request.patient_id}_{safe_name}.png"
+            storage.upload_file(
+                io.BytesIO(waveform_image_bytes),
+                f"{base_path}/{waveform_filename}",
+                "image/png"
             )
             
         # Upload Doctor Marked Images
@@ -147,7 +177,8 @@ async def list_reports(email: str, storage: MinioStorage = Depends(get_storage),
                         "patient_id": patient_id,
                         "patient_name": patient_name,
                         "date": last_modified.isoformat(),
-                        "file_name": file_name
+                        "file_name": file_name,
+                        "size_bytes": obj.get('Size', 0)
                     })
         
         # Sort by date, newest first

@@ -29,11 +29,29 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   bool _isAnalyzing = false;
   AnalysisResult? _result;
   String? _errorMessage;
+  Map<String, dynamic>? _usageStats;
+  bool _isLoadingUsage = true;
 
   @override
   void initState() {
     super.initState();
     _generatePatientId();
+    _fetchUsageStats();
+  }
+
+  Future<void> _fetchUsageStats() async {
+    try {
+      final stats = await _apiService.getUsageStats();
+      if (mounted) {
+        setState(() {
+          _usageStats = stats;
+          _isLoadingUsage = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching stats: $e");
+      if (mounted) setState(() => _isLoadingUsage = false);
+    }
   }
 
   void _generatePatientId() {
@@ -90,6 +108,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
   Future<void> _analyzeImage() async {
     if (_selectedImage == null) return;
+    
+    // UI Enforcement: Check runs limit
+    if (_usageStats != null && (_usageStats!['runs_used_count'] ?? 0) >= 100) {
+      setState(() => _errorMessage = "Run limit reached (100/100). Please contact support to upgrade.");
+      return;
+    }
 
     setState(() {
       _isAnalyzing = true;
@@ -98,18 +122,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     try {
       final result = await _apiService.analyzeImage(_selectedImage!);
-      
-      // Check for OOD Error (handled in model or service?)
-      // Actually ApiService parses JSON. If JSON has 'error', it might not map to AnalysisResult perfectly unless we updated AnalysisResult.
-      // Let's update ApiService to throw specific error or AnalysisResult to handle it.
-      // But for now, let's assume ApiService throws if not 200, or returns result.
-      // Wait, I returned JSON with "error" key in backend, but status code? 
-      // Backend returns JSONResponse(result). Default status is 200.
-      // So AnalysisResult.fromJson will fail if 'predictions' is missing.
-      
       setState(() {
         _result = result;
       });
+      // Re-fetch usage stats after success to reflect the new run
+      _fetchUsageStats();
     } catch (e) {
       String msg = e.toString();
       if (msg.contains("OOD_DETECTED")) {
@@ -246,17 +263,18 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                                     fit: StackFit.expand,
                                     children: [
                                       _imageBytes != null 
-                                        ? Image.memory(_imageBytes!, fit: BoxFit.contain)
+                                        ? Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              Image.memory(_imageBytes!, fit: BoxFit.contain),
+                                              if (_result != null && _result!.heatmapBase64.isNotEmpty)
+                                                Image.memory(
+                                                  base64Decode(_result!.heatmapBase64),
+                                                  fit: BoxFit.contain,
+                                                ),
+                                            ],
+                                          )
                                         : const Center(child: CircularProgressIndicator()),
-                                      if (_result != null && _result!.heatmapBase64.isNotEmpty) ...[
-                                        Opacity(
-                                          opacity: 0.6,
-                                          child: Image.memory(
-                                            base64Decode(_result!.heatmapBase64),
-                                            fit: BoxFit.contain,
-                                          ),
-                                        ),
-                                      ],
                                     ],
                                   ),
                                 ),
