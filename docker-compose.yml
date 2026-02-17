@@ -16,8 +16,8 @@ services:
       - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
       - MINIO_SECURE=${MINIO_SECURE:-False}
     volumes:
-      - ./backend/uploads:/app/uploads
-      - ./backend/reports:/app/reports
+      - ./uploads:/app/uploads
+      - ./reports:/app/reports
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 30s
