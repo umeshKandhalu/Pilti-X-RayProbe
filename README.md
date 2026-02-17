@@ -79,7 +79,7 @@ To maintain clinical integrity, PCSS includes a **Recursive Autoencoder (ResNetA
 
 ## 🚀 Quick Start (Docker - Recommended)
 
-PCSS v2.1.0 is optimized for a **Docker-first** deployment. This ensures all model dependencies and environmental configurations are pre-packaged and stable.
+PCSS v2.2.0 is optimized for a **Docker-first** deployment. This ensures all model dependencies and environmental configurations are pre-packaged and stable.
 
 ### 1. Prerequistes
 - [Docker & Docker Compose](https://docs.docker.com/get-docker/) installed.
