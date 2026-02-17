@@ -10,7 +10,7 @@ from app.api import auth, analysis, reports, admin, ecg
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Backend for X-ray analysis and report generation",
-    version="2.2.0",
+    version="2.2.2",
     docs_url=f"{settings.API_V1_STR}/docs",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
@@ -18,7 +18,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

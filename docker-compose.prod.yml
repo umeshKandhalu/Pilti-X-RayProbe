@@ -9,17 +9,17 @@ services:
     ports:
       - "8888:8080"
     environment:
-      # In production, point to your actual MinIO/S3 server
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
-      - MINIO_SECURE=${MINIO_SECURE:-False}
+      # Hardcoded production environment variables (for improved local DX)
+      - MINIO_ENDPOINT=http://145.241.237.108:9000
+      - MINIO_ACCESS_KEY=vPlP3zd1pXWl3c6deROP
+      - MINIO_SECRET_KEY=pC2H7MYAAH3DZs1faBKh9EzNHhDZ18UTTo8gjj7s
+      - MINIO_BUCKET_NAME=pcss-data
+      - MINIO_SECURE=False
     volumes:
       - ./uploads:/app/uploads
       - ./reports:/app/reports
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" ]
       interval: 30s
       timeout: 10s
       retries: 3
