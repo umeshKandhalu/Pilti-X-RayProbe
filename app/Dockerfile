@@ -12,11 +12,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Flutter
-RUN git clone --depth 1 https://github.com/flutter/flutter.git /usr/local/flutter
+RUN git clone -b stable https://github.com/flutter/flutter.git /usr/local/flutter
 ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
 
-# Switch to stable channel
-RUN flutter channel stable
+# Run doctor to download dependencies
 RUN flutter doctor -v
 
 # Copy app files
