@@ -77,5 +77,30 @@ To maintain clinical integrity, PCSS includes a **Recursive Autoencoder (ResNetA
 
 ---
 
-## 📖 Setup & Development
-Detailed environment variables and installation steps are located in the [INSTRUCTIONS.md](INSTRUCTIONS.md) file.
+## 🚀 Quick Start (Docker - Recommended)
+
+PCSS v2.1.0 is optimized for a **Docker-first** deployment. This ensures all model dependencies and environmental configurations are pre-packaged and stable.
+
+### 1. Prerequistes
+- [Docker & Docker Compose](https://docs.docker.com/get-docker/) installed.
+- Access to the PCSS MinIO storage (or your own S3-compatible service).
+
+### 2. Deployment
+Run the entire stack with a single command:
+```bash
+docker-compose up -d
+```
+The system will be accessible at:
+- **Frontend**: [http://localhost:8080](http://localhost:8080)
+- **Backend API**: [http://localhost:8888](http://localhost:8888)
+
+### 3. Production Release
+To pull and run the official pre-built images from GitHub:
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+## 📖 Legacy Development & Setup
+For developers who wish to run the stack natively without Docker, refer to the source code configuration in `app/` and `backend/`. However, we strongly recommend the Docker-based flow for production parity.
