@@ -37,48 +37,71 @@ class ApiService {
     _setupInterceptors();
   }
 
+  // Singleton SharedPreferences for safety and performance
+  static Future<SharedPreferences> get _prefs async {
+    return await SharedPreferences.getInstance();
+  }
+
   void _setupInterceptors() {
+    print("[API] Setting up Axios/Dio Interceptors...");
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        // 1. Add JWT Token
-        final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString(_keyJwtToken);
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
+        print("[API] Request: ${options.method} ${options.path}");
+        try {
+          // 1. Add JWT Token
+          final prefs = await _prefs;
+          final token = prefs.getString(_keyJwtToken);
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+            print("[API] Added Bearer Token");
+          }
+
+          // 2. Add HMAC Signature
+          final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+          options.headers['X-Timestamp'] = timestamp.toString();
+
+          List<int> bodyBytes = [];
+          if (options.data != null) {
+             if (options.data is FormData || options.path == '/generate_report') {
+               // Skip signing FormData body and large report JSON to avoid UI freeze/mismatches
+               bodyBytes = [];
+             } else if (options.data is Map || options.data is List) {
+               bodyBytes = utf8.encode(jsonEncode(options.data));
+             } else if (options.data is String) {
+               bodyBytes = utf8.encode(options.data);
+             }
+          }
+          
+          // Signature = HMAC-SHA256(Secret, Timestamp + Body)
+          final hmac = Hmac(sha256, utf8.encode(_hmacSecret));
+          final message = utf8.encode('$timestamp') + bodyBytes;
+          final digest = hmac.convert(message);
+          
+          // Convert to hex string (backend expects hexdigest format)
+          options.headers['X-Signature'] = digest.toString().replaceAll(RegExp(r'[^0-9a-f]'), '');
+          print("[API] Added HMAC Signature");
+
+          return handler.next(options);
+        } catch (e) {
+          print("[API] Error in Interceptor: $e");
+          // Don't block the request, let it fail naturally if headers are missing
+          // or rethrow to stop it. Rethrowing is safer to see the error.
+          return handler.reject(DioException(requestOptions: options, error: "Interceptor Error: $e"));
         }
-
-        // 2. Add HMAC Signature
-        final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
-        options.headers['X-Timestamp'] = timestamp.toString();
-
-        List<int> bodyBytes = [];
-        if (options.data != null) {
-           if (options.data is FormData || options.path == '/generate_report') {
-             // Skip signing FormData body and large report JSON to avoid UI freeze/mismatches
-             bodyBytes = [];
-           } else if (options.data is Map || options.data is List) {
-             bodyBytes = utf8.encode(jsonEncode(options.data));
-           } else if (options.data is String) {
-             bodyBytes = utf8.encode(options.data);
-           }
-        }
-        
-        // Signature = HMAC-SHA256(Secret, Timestamp + Body)
-        final hmac = Hmac(sha256, utf8.encode(_hmacSecret));
-        final message = utf8.encode('$timestamp') + bodyBytes;
-        final digest = hmac.convert(message);
-        
-        // Convert to hex string (backend expects hexdigest format, not Digest object toString)
-        options.headers['X-Signature'] = digest.toString().replaceAll(RegExp(r'[^0-9a-f]'), '');
-
-        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        print("[API] Response: ${response.statusCode} ${response.statusMessage}");
+        return handler.next(response);
       },
       onError: (DioException e, handler) async {
+        print("[API] Error: ${e.message}");
+        if (e.response != null) {
+          print("[API] Response Data: ${e.response?.data}");
+        }
+        
         if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-          // Token expired or Invalid Signature
+          print("[API] Session Expired/Unauthorized");
           await clearSession();
-          // TODO: Trigger navigation to login? 
-          // For now, allow the error to propagate so UI shows "Session Expired"
         }
         return handler.next(e);
       }
