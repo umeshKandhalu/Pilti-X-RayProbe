@@ -26,6 +26,11 @@ def get_ecg_analyzer():
         raise HTTPException(status_code=503, detail="ECG Analysis Engine not available")
     return ecg_analyzer
 
+def get_analyzer():
+    if not analyzer:
+        raise HTTPException(status_code=503, detail="X-Ray Analysis Engine not available")
+    return analyzer
+
 def get_report_generator():
     if not report_gen:
         raise HTTPException(status_code=503, detail="Report Generation Engine not available")
