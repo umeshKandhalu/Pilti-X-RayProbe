@@ -16,17 +16,29 @@ class ApiService {
   static const String _keyBaseUrl = 'api_base_url';
   static const String _keyJwtToken = 'jwt_token'; // Store JWT in SharedPreferences instead
   
-  // Default URL (Localhost for emulator/device)
-  // Note: Platform.isX is not used directly to avoid dart:io errors on web
-  static String _baseUrl = kIsWeb 
-      ? '${Uri.base.scheme}://${Uri.base.host}:8888' 
-      : 'http://localhost:8888'; // Default for desktop/local
+  // Smarter Base URL Resolution
+  static String _baseUrl = _getDefaultBaseUrl();
+
+  static String _getDefaultBaseUrl() {
+    if (kIsWeb) {
+      final uri = Uri.base;
+      // If served via HTTPS (Production/Proxy), assume backend is on same host
+      // or at least available without the developer port 8888 by default.
+      if (uri.scheme == 'https') {
+        return 'https://${uri.host}';
+      }
+      return 'http://${uri.host}:8888';
+    }
+    // Default for mobile/emulator
+    return 'http://localhost:8888';
+  }
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: _baseUrl,
     connectTimeout: const Duration(seconds: 300),
     receiveTimeout: const Duration(seconds: 300),
     sendTimeout: const Duration(seconds: 300),
+    validateStatus: (status) => true, // Don't throw for 304/401, handle manually
   ));
 
   // TODO: Move this to a secure config or env variable in production
@@ -121,11 +133,7 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     if (newUrl.isEmpty) {
       await prefs.remove(_keyBaseUrl);
-      // Reset to default if cleared? Or keep empty? 
-      // Better to keep previous or reset to default hardcoded one.
-      _baseUrl = kIsWeb 
-        ? '${Uri.base.scheme}://${Uri.base.host}:8888' 
-        : 'http://192.168.0.91:8888';
+      _baseUrl = _getDefaultBaseUrl();
     } else {
       await prefs.setString(_keyBaseUrl, newUrl);
       _baseUrl = newUrl;
