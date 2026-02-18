@@ -1,7 +1,7 @@
 name: clinical_decision_support
 description: A clinical decision support mobile application for X-ray analysis.
 publish_to: 'none'
-version: 2.2.4+1
+version: 2.2.5+1
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

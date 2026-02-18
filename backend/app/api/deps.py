@@ -4,36 +4,43 @@ from app.services.report import ReportGenerator
 from app.services.auth import AuthService
 from app.services.storage import MinioStorage
 
-# Initialize Singletons
-try:
-    analyzer = XRayAnalyzer()
-except Exception as e:
-    print(f"Warning: Failed to load XRayAnalyzer: {e}")
-    analyzer = None
+# Initialize Singletons with Safety Wrappers
+def init_service(service_class, name):
+    try:
+        print(f"[INIT] Initializing {name}...")
+        return service_class()
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize {name}: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
-ecg_analyzer = ECGAnalyzer()
-
-report_gen = ReportGenerator()
-storage = MinioStorage()
-auth_service = AuthService()
-
-def get_auth_service():
-    return auth_service
-
-def get_analyzer():
-    if not analyzer:
-        raise Exception("Model not loaded")
-    return analyzer
+analyzer = init_service(XRayAnalyzer, "XRayAnalyzer")
+ecg_analyzer = init_service(ECGAnalyzer, "ECGAnalyzer")
+report_gen = init_service(ReportGenerator, "ReportGenerator")
+storage = init_service(MinioStorage, "MinioStorage")
+auth_service = init_service(AuthService, "AuthService")
 
 def get_ecg_analyzer():
+    if not ecg_analyzer:
+        raise HTTPException(status_code=503, detail="ECG Analysis Engine not available")
     return ecg_analyzer
 
 def get_report_generator():
+    if not report_gen:
+        raise HTTPException(status_code=503, detail="Report Generation Engine not available")
     return report_gen
 
-
 def get_storage():
+    if not storage:
+        raise HTTPException(status_code=503, detail="Storage Service not available")
     return storage
+
+def get_auth_service():
+    if not auth_service:
+        # Crucial for login, if this fails we have a major issue
+        raise HTTPException(status_code=503, detail="Authentication Service not available")
+    return auth_service
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
