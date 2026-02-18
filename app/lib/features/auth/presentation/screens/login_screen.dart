@@ -112,6 +112,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   actions: [
                     TextButton(
+                      onPressed: () async {
+                        await _apiService.resetBaseUrl();
+                        if (mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Server URL reset to default')),
+                          );
+                        }
+                      },
+                      child: const Text('Reset to Default', style: TextStyle(color: Colors.red)),
+                    ),
+                    TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Text('Cancel'),
                     ),
