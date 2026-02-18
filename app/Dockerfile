@@ -29,14 +29,12 @@ RUN flutter build web --release
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
 
-# Install gettext for envsubst
-RUN apk add --no-cache gettext
-
 # Copy built web assets to Nginx html directory
 COPY --from=build-env /app/build/web /usr/share/nginx/html
 
-# Copy nginx configuration template
-COPY nginx.conf.template /etc/nginx/conf.d/nginx.conf.template
+# Copy nginx configuration template to the official template directory
+# The official nginx image runs envsubst on files in this directory at startup
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Default backend URL (internal docker network)
 ENV BACKEND_URL=http://backend:8080
@@ -44,5 +42,4 @@ ENV BACKEND_URL=http://backend:8080
 # Expose port (default for Nginx is 80)
 EXPOSE 80
 
-# Injection of environment variable at runtime
-CMD ["/bin/sh", "-c", "envsubst '$BACKEND_URL' < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# CMD is provided by the base image, it automatically handles templates.

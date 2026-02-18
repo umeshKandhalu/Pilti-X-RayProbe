@@ -10,7 +10,7 @@ from app.api import auth, analysis, reports, admin, ecg
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Backend for X-ray analysis and report generation",
-    version="2.2.7",
+    version="2.2.8",
     docs_url=f"{settings.API_V1_STR}/docs",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )

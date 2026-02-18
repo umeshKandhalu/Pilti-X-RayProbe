@@ -16,16 +16,16 @@ class ApiService {
   static const String _keyBaseUrl = 'api_base_url';
   static const String _keyJwtToken = 'jwt_token'; // Store JWT in SharedPreferences instead
   
-  // Smarter Base URL Resolution
   static String _baseUrl = _getDefaultBaseUrl();
 
   static String _getDefaultBaseUrl() {
     if (kIsWeb) {
-      // In production (Docker), we use a relative path /api.
-      // Nginx will proxy this to the backend defined in docker-compose.
+      // PRO TIP: In production (Docker), we use a relative path /api.
+      // This is routed via Nginx proxy to the BACKEND_URL in docker-compose.
+      print("[API] Running in Web mode. Defaulting to relative proxy path: /api");
       return '/api';
     }
-    // Default for mobile/emulator
+    // Default for local mobile/emulator
     return 'http://localhost:8888';
   }
 
@@ -34,7 +34,7 @@ class ApiService {
     connectTimeout: const Duration(seconds: 300),
     receiveTimeout: const Duration(seconds: 300),
     sendTimeout: const Duration(seconds: 300),
-    validateStatus: (status) => true, // Don't throw for 304/401, handle manually
+    validateStatus: (status) => true,
   ));
 
   // TODO: Move this to a secure config or env variable in production
@@ -119,10 +119,22 @@ class ApiService {
   Future<void> _initBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     final savedUrl = prefs.getString(_keyBaseUrl);
+    
     if (savedUrl != null && savedUrl.isNotEmpty) {
-      _baseUrl = savedUrl;
-      _dio.options.baseUrl = savedUrl;
+       // If running on web, and the saved URL looks like an old local dev URL, 
+       // we should prioritize the relative /api path for Zero-Config support.
+       if (kIsWeb && (savedUrl.contains("localhost:8888") || savedUrl.contains("127.0.0.1"))) {
+         print("[API] Stale local URL detected in Web mode. Reverting to /api");
+         _baseUrl = '/api';
+       } else {
+         _baseUrl = savedUrl;
+       }
+    } else {
+      _baseUrl = _getDefaultBaseUrl();
     }
+    
+    _dio.options.baseUrl = _baseUrl;
+    print("[API] Initialized with Base URL: $_baseUrl");
   }
 
   Future<void> updateBaseUrl(String newUrl) async {
