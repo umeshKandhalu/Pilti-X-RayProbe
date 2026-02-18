@@ -6,8 +6,8 @@ services:
     image: ghcr.io/umeshkandhalu/pilti-xrayprobe/backend:latest
     container_name: pilti-backend
     restart: always
-    ports:
-      - "8888:8080"
+    # ports:
+    #   - "8888:8080"
     environment:
       # Hardcoded production environment variables (for improved local DX)
       - MINIO_ENDPOINT=http://145.241.237.108:9000

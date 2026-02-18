@@ -10,7 +10,7 @@ from app.api import auth, analysis, reports, admin, ecg
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Backend for X-ray analysis and report generation",
-    version="2.3.1",
+    version="2.4.0",
     docs_url=f"{settings.API_V1_STR}/docs",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
@@ -18,7 +18,12 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",
+    allow_origins=[
+        "https://pilti-css.piltismart.com",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080"
+    ],
+    allow_origin_regex=None, # Switch to explicit list for better security
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
