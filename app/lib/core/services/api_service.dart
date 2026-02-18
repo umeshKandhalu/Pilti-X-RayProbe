@@ -120,26 +120,34 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final savedUrl = prefs.getString(_keyBaseUrl);
     
+    print("[API] SharedPreferences savedUrl: $savedUrl");
+
     if (kIsWeb) {
-      // PRO TIP: In production (Docker), the app MUST hit /api for the Nginx proxy to work.
-      // If the saved URL is a legacy production URL or a stale local dev URL, we force a reset.
-      if (savedUrl != null && (
-          savedUrl.contains("pilti-css.piltismart.com") || 
+      // FORCE RESET for anyone coming from old versions or stale production DNS
+      bool isLegacy = savedUrl != null && (
+          savedUrl.contains("piltismart.com") || 
+          savedUrl.contains("pilti-css") ||
           savedUrl.contains("localhost") || 
           savedUrl.contains("127.0.0.1")
-      )) {
-        print("[API] Stale or Legacy URL detected ($savedUrl). Forcing reset to Zero-Config path: /api");
+      );
+
+      if (isLegacy) {
+        print("[API] 🚨 Legacy/Stale URL detected in cache: $savedUrl. Resetting to /api for Zero-Config support.");
         await prefs.remove(_keyBaseUrl);
         _baseUrl = '/api';
+      } else if (savedUrl == null || savedUrl.isEmpty) {
+        print("[API] No saved URL. Using default relative path: /api");
+        _baseUrl = '/api';
       } else {
-        _baseUrl = savedUrl ?? '/api';
+        _baseUrl = savedUrl;
+        print("[API] Using user-defined saved URL: $_baseUrl");
       }
     } else {
       _baseUrl = savedUrl ?? _getDefaultBaseUrl();
     }
     
     _dio.options.baseUrl = _baseUrl;
-    print("[API] Initialized with Base URL: $_baseUrl");
+    print("[API] Final Base URL initialized: $_baseUrl");
   }
 
   Future<void> updateBaseUrl(String newUrl) async {
