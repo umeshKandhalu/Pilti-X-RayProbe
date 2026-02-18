@@ -26,5 +26,9 @@ RUN mkdir -p uploads reports
 # Expose port (Cloud Run expects 8080 by default, but we can config)
 EXPOSE 8080
 
+# Generate internal SSL certs and start app
+COPY generate_internal_certs.sh .
+RUN chmod +x generate_internal_certs.sh && ./generate_internal_certs.sh
+
 # Command to run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--ssl-keyfile", "/app/certs/internal.key", "--ssl-certfile", "/app/certs/internal.crt"]
