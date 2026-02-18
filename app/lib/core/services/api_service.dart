@@ -123,24 +123,29 @@ class ApiService {
     print("[API] SharedPreferences savedUrl: $savedUrl");
 
     if (kIsWeb) {
-      // FORCE RESET for anyone coming from old versions or stale production DNS
+      // 1. Force Reset for absolute HTTP URLs when on HTTPS (Prevents Mixed Content errors)
+      final bool isPageSecure = Uri.base.scheme == 'https';
+      final bool isUrlInsecure = savedUrl != null && savedUrl.startsWith('http://');
+      
+      // 2. Identify stale local/legacy patterns
       bool isLegacy = savedUrl != null && (
           savedUrl.contains("piltismart.com") || 
           savedUrl.contains("pilti-css") ||
           savedUrl.contains("localhost") || 
-          savedUrl.contains("127.0.0.1")
+          savedUrl.contains("127.0.0.1") ||
+          savedUrl.contains("192.168.") || // Added common local subnet
+          savedUrl.contains("10.") ||       // Added common local subnet
+          (isPageSecure && isUrlInsecure)  // Mixed Content is a hard failure
       );
 
       if (isLegacy) {
-        print("[API] 🚨 Legacy/Stale URL detected in cache: $savedUrl. Resetting to /api for Zero-Config support.");
+        print("[API] 🚨 Stale/Insecure URL detected ($savedUrl) on ${isPageSecure ? 'HTTPS' : 'HTTP'} layout. Forcing reset to Zero-Config: /api");
         await prefs.remove(_keyBaseUrl);
         _baseUrl = '/api';
       } else if (savedUrl == null || savedUrl.isEmpty) {
-        print("[API] No saved URL. Using default relative path: /api");
         _baseUrl = '/api';
       } else {
         _baseUrl = savedUrl;
-        print("[API] Using user-defined saved URL: $_baseUrl");
       }
     } else {
       _baseUrl = savedUrl ?? _getDefaultBaseUrl();
