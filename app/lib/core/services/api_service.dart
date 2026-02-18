@@ -21,13 +21,9 @@ class ApiService {
 
   static String _getDefaultBaseUrl() {
     if (kIsWeb) {
-      final uri = Uri.base;
-      // If served via HTTPS (Production/Proxy), assume backend is on same host
-      // or at least available without the developer port 8888 by default.
-      if (uri.scheme == 'https') {
-        return 'https://${uri.host}';
-      }
-      return 'http://${uri.host}:8888';
+      // In production (Docker), we use a relative path /api.
+      // Nginx will proxy this to the backend defined in docker-compose.
+      return '/api';
     }
     // Default for mobile/emulator
     return 'http://localhost:8888';

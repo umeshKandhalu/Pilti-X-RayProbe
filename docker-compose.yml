@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: pilti-xrayprobe-backend:v2.2.0
+    image: pilti-xrayprobe-backend:latest
     container_name: pilti-backend
     ports:
       - "8888:8080"
@@ -29,10 +29,12 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
-    image: pilti-xrayprobe-frontend:v2.2.0
+    image: pilti-xrayprobe-frontend:latest
     container_name: pilti-frontend
     ports:
       - "8080:80"
+    environment:
+      - BACKEND_URL=http://backend:8080
     depends_on:
       backend:
         condition: service_healthy
