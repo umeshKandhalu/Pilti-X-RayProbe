@@ -21,6 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV XDG_CACHE_HOME=/app/.cache
 ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
 ENV TORCH_HOME=/app/.cache/torch
+ENV HF_HOME=/app/.cache/huggingface
 
 # Copy downloader and pre-download models
 COPY download_models.py .
@@ -57,6 +58,8 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 ENV XDG_CACHE_HOME=/app/.cache
 ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
 ENV TORCH_HOME=/app/.cache/torch
+ENV HF_HOME=/app/.cache/huggingface
+ENV TRANSFORMERS_OFFLINE=1
 
 EXPOSE 8080
 

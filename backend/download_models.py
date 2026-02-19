@@ -7,6 +7,9 @@ import os
 os.environ['XDG_CACHE_HOME'] = '/app/.cache'
 os.environ['TRANSFORMERS_CACHE'] = '/app/.cache/huggingface'
 os.environ['TORCH_HOME'] = '/app/.cache/torch'
+os.environ['HF_HOME'] = '/app/.cache/huggingface'
+# Force torchxrayvision to use a specific directory if possible
+# (It usually follows XDG_CACHE_HOME or TORCH_HOME)
 
 print("--- Pre-downloading SOTA Radiology Models ---")
 

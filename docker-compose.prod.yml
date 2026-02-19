@@ -34,7 +34,7 @@ services:
     ports:
       - "80:80" # Standard web port
     environment:
-      - BACKEND_URL=http://backend:8080
+      - BACKEND_URL=backend:8080
     depends_on:
       backend:
         condition: service_healthy

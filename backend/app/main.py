@@ -4,13 +4,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import os
+# Ensure we use the baked-in models and stay offline for stability
+os.environ['TRANSFORMERS_CACHE'] = '/app/.cache/huggingface'
+os.environ['TORCH_HOME'] = '/app/.cache/torch'
+os.environ['XDG_CACHE_HOME'] = '/app/.cache'
+os.environ['TRANSFORMERS_OFFLINE'] = '1'
+
 from app.core.config import settings
 from app.api import auth, analysis, reports, admin, ecg
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Backend for X-ray analysis and report generation",
-    version="2.6.0",
+    version="2.6.1",
     docs_url=f"{settings.API_V1_STR}/docs",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
