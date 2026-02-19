@@ -20,9 +20,10 @@ services:
       - ./reports:/app/reports
     healthcheck:
       test: [ "CMD", "curl", "-k", "-f", "https://localhost:8080/health" ]
-      interval: 30s
+      interval: 20s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 60s
     networks:
       - pilti-net
 
